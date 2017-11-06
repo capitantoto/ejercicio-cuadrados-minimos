@@ -88,3 +88,26 @@ et_exp <- sqrt(sum(err_exp))
 
 # Estimo la poblacion segun el modelo exponencial para el 2030
 est_2030_exp <- b_exp_orig * exp(a_exp * 2030)
+
+
+# Preparo grafico
+# Funciones de estimacion
+fun_lin <- function(x) { b_lin + a_lin * x}
+fun_pol <- function(x) { b_pol_orig * x^a_pol}
+fun_exp <- function(x) { b_exp_orig * exp(a_exp*x)}
+
+grafico <- ggplot(datos, aes(x = anio, y = poblacion)) + geom_point()
+
+grafico +
+  stat_function(
+    fun = fun_lin,
+    color = "blue"
+  ) +
+  stat_function(
+    fun = fun_pol,
+    color = "red"
+  ) +
+  stat_function(
+    fun = fun_exp,
+    color = "green"
+  )
