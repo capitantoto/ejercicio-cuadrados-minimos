@@ -1,2 +1,4 @@
-# OpenOffice locks
+otras-entregas/
+.RData
+.Rhistory
 .~lock*
