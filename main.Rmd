@@ -1,7 +1,7 @@
 ---
 title: "Álgebra Lineal: Ejercicio Cuadrados Mínimos"
-author: "Gonzalo Barrera Borla"
-date: "Noviembre 21, 2017"
+author: "Gonzalo Barrera Borla, María Gabriela Armentano"
+date: "Noviembre 22, 2017"
 header-includes:
    - \usepackage{amsmath}
 output: 
@@ -45,7 +45,7 @@ tt <- datos$anio
 uno <- rep.int(1, n)
 ```
 
-# Ajuste lineal
+# Ajuste modelo lineal
 
 ## Aspectos generales del ajuste por cuadrados mínimos
 
@@ -59,12 +59,12 @@ $$
 x^{*}_{lin} = \begin{pmatrix} b_{lin} \\ a_{lin} \end{pmatrix},
 A_{lin} = \begin{pmatrix} 1 & t_1 \\ 1 & t_2 \\ \dots & \dots \\ 1 & t_n \end{pmatrix}
 $$
-, podemos reescribir vectorialmente $Z_{lin}$ para todas las observaciones como
+Podemos reescribir vectorialmente $z_{lin}$ para todas las observaciones como
 $$
 z_{lin} = A_{lin} \cdot x^{*}_{lin}
 $$
 
-Si elegimos los coeficientes de $x^{*}_{lin}$ de forma que $z_{lin}$ sea la proyección ortogonal de $y$ sobre el subespacio definido por los vectores $\langle 1, t \rangle$, sabremos con seguridad que estamos minimizando $\Vert y - z_{lin} \Vert$. Además, $y - z_{lin}$ será ortogonal a ambos vectores, $1$ y $t$.
+Si elegimos los coeficientes de $x^{*}_{lin}$ de forma que $z_{lin}$ sea la proyección ortogonal de $y$ sobre el subespacio definido por los vectores $\langle \vec{1}, \vec{t} \rangle$, sabremos con seguridad que estamos minimizando $\Vert y - z_{lin} \Vert$. Además, $y - z_{lin}$ será ortogonal a ambos vectores, $\vec{1}$ y $\vec{t}$.
 
 Este planteo puede ser resumido en la siguiente "ecuación normal":
 
@@ -76,7 +76,7 @@ A^{t} \cdot y &= A^{t} \cdot A \cdot x^{*}_{lin}
 \end{align}
 $$
 
-y siempre y cuando $A^{t} \cdot A$ sea invertible, podemos encontrar $x^{*}_{lin}$ como
+Siempre y cuando $A^{t} \cdot A$ sea invertible, podemos encontrar $x^{*}_{lin}$ como
 
 $$
 \begin{align}
@@ -88,15 +88,16 @@ $$
 
 A continuación, el código para calcular $x^{*}_{lin}$ según el método antes descrito:
 ```{r ajuste_lineal}
+# Defino matriz asociada
 A_lin <- matrix(c(uno, tt), nrow = n)
 
-# Sea C = A^t * A, y  d = A^t * y. Luego, podemos obtener x como C^-1 %*% d, que se implementa como solve(C,d)
+# Sea C = A^t * A, y  d = A^t * y. Luego, podemos obtener x^* como C^-1 %*% d, que se implementa como solve(C,d)
 C_lin <- t(A_lin) %*% A_lin
 d_lin <- t(A_lin) %*% y
 x_lin <- solve(C_lin, d_lin)
 ```
 
-## Especificación del modelo
+## Especificación del modelo lineal
 
 Para recrear la fórmula inicial $z_{lin}(t) = b_{lin} + a_{lin} \times t$, extraigo los coeficientes $(b_{lin}, a_{lin})$ y la codificamos en un método de R.
 
@@ -107,7 +108,7 @@ a_lin <- x_lin[2]
 est_lin <- function(x) { b_lin + a_lin * x}
 ```
 
-que es equivalente a
+Que es equivalente a
 
 $$
 z_{lin}(t) = `r b_lin` + `r a_lin` \times t
@@ -117,7 +118,7 @@ $$
 
 Sea el error total del modelo
 $$
-ET_{lin} = \Vert y - z_{lin} \Vert = \sum\limits_{i=1}^n (y_{i} - z_{lin,i})^2
+ET_{lin} = \Vert y - z_{lin} \Vert = \sqrt{\sum\limits_{i=1}^n (y_{i} - z_{lin,i})^2}
 $$
 
 Se lo puede calcular como
@@ -128,22 +129,22 @@ err_lin <- (y-z_lin)^2
 et_lin <- sqrt(sum(err_lin))
 ```
 
-de forma que 
+De forma que 
 $$
 ET_{lin} = `r et_lin`
 $$
 
-## Estimación lineal de la poblacion para el 2030
+## Estimación lineal de la poblacion para el año 2030
 
 Contando con la función `est_lin`, la estimación lineal de la población para 2030 se consigue como
 ```{r estimacion_lineal}
 est_2030_lin <- est_lin(2030)
 ```
-... que arroja una población estimada de `r est_2030_lin` millones de habitantes.
+Que arroja una población estimada de `r est_2030_lin` millones de habitantes.
 
 # Ajuste modelo potencial
 
-Hasta aquí, hemos visto cómo ajustar por la técnica de cuadrados mínimos un modelo _lineal_ sobre las variables independientes. Por lo tanto, un modelo donde la estimación depende de una función _potencial_ (no estoy seguro de este término), $z_{pot} = b_{pot} \times t^{a_{pot}}$ no se puede ajustar por cuadrados mínimos sin algún tratamiento previo.
+Hasta aquí, hemos visto cómo ajustar por la técnica de cuadrados mínimos un modelo _lineal_ sobre las variables independientes. Por lo tanto, un modelo donde la estimación depende de una función _potencial_ (espero que "potencial" sea la denominación correcta), $z_{pot} = b_{pot} \times t^{a_{pot}}$ no se puede ajustar por cuadrados mínimos sin algún tratamiento previo.
 
 En particular, si aplicamos logaritmo natural a ambos términos, obtenemos
 $$
@@ -168,30 +169,29 @@ Y luego resolvemos tal como hicimos con el modelo lineal:
 # Defino matriz asociada
 A_pot <- matrix(c(uno, ln_tt), nrow = n)
 
-# Sea C = t(A) %*% A,  d = t(A) %*% y x los coeficientes lineales del modelo, tenemos
-# C %*% x = d y podemos obtener x como C^-1 %*% d, que se implementa como solve(C,d)
+# Obtengo x_pot
 C_pot <- t(A_pot) %*% A_pot
 d_pot <- t(A_pot) %*% ln_y
 x_pot <- solve(C_pot, d_pot)
 ```
 
-## Especificación del modelo
+## Especificación del modelo potencial
 
 Vale recordar que en este modelo potencial linearizado, los coeficientes de $x^{*}_{pot}$ son $\ln(b_{pot})$ y $a_{pot}$, por lo que para reconstruir la función original, tendremos que recuperar $b_{pot}$.
 
 ```{r est_pot}
 # Extraigo los coeficientes
-b_pot <- x_pot[1]
+ln_b_pot <- x_pot[1]
 a_pot <- x_pot[2]
 # Recupero los coeficientes del modelo no linearizado
-b_pot_orig <- exp(b_pot)
+b_pot <- exp(ln_b_pot)
 
-est_pot <- function(x) { b_pot_orig * x^a_pot}
+est_pot <- function(x) { b_pot * x^a_pot}
 ```
 
 Esta última función, `est_pot`, codifica el modelo ajustado, que resulta ser
 $$
-z_{pot}(t) = `r b_pot_orig`  \times t^{`r a_pot`}
+z_{pot}(t) = `r b_pot`  \times t^{`r a_pot`}
 $$
 
 ## Cálculo del error asociado al modelo potencial
@@ -203,12 +203,15 @@ err_pot <- (y-z_pot)^2
 et_pot <- sqrt(sum(err_pot))
 ```
 
-Lo que nos da un error total $ET_{pot}=`r et_pot`$
+Lo que nos da un error total 
+$$
+ET_{pot}=`r et_pot`
+$$
 
 
 ## Estimación potencial de la poblacion para el 2030
 
-Usando la función `est_pot` antes definida, obtenemos una población estimada de `r est_pot(2030)` millones de habitantes.
+Usando la función `est_pot` antes definida, obtenemos una población estimada para el año 2030 de `r est_pot(2030)` millones de habitantes.
 
 # Ajuste modelo exponencial
 
@@ -216,8 +219,8 @@ De manera similar a lo hecho para el modelo potencial, utilizaremos un modelo au
 
 $$
 \begin{align}
-z_{exp} &= b_{exp} \times e^{a_{exp} \times t}
-\ln(z_{exp}) &= \ln \left( b_{exp} \times e^{a_{exp} \times t} \right)
+z_{exp} &= b_{exp} \times e^{a_{exp} \times t} \\
+\ln(z_{exp}) &= \ln \left( b_{exp} \times e^{a_{exp} \times t} \right) \\
 \ln(z_{exp}) &= \ln(b_{exp}) + a_{exp} \times t
 \end{align}
 $$
@@ -237,17 +240,17 @@ Una vez más, extraemoms los coeficientes del modelo auxiliar linearizado, los t
 
 ```{r est_exp}
 # Extraigo los coeficientes
-b_exp <- x_exp[1]
+ln_b_exp <- x_exp[1]
 a_exp <- x_exp[2]
 
 # Recupero los coeficientes del modelo no linearizado
-b_exp_orig <- exp(b_exp)
+b_exp <- exp(ln_b_exp)
 
 # Defino est_exp
-est_exp <- function(x) { b_exp_orig * exp(a_exp*x)}
+est_exp <- function(x) { b_exp * exp(a_exp*x)}
 ```
 
-`est_exp` es equivalente, entonces al modelo ajustado
+El modelo exponencial ajustado representado por `est_exp` queda como
 
 $$
 z_{exp}(t) = `r b_exp_orig` \times e^{`r a_exp` \times t}
@@ -263,7 +266,10 @@ err_exp <- (y-z_exp)^2
 et_exp <- sqrt(sum(err_exp))
 ```
 
-... obtenemos $ET_{exp} = `r et_exp`$
+Obtenemos 
+$$
+ET_{exp} = `r et_exp`
+$$
 
 ## Estimación exponencial de la poblacion para el 2030
 
@@ -274,9 +280,10 @@ et_exp <- sqrt(sum(err_exp))
 ## Gráficos comparativos
 
 En primer lugar, graficamos los valores conocidos de la población, junto con las tres funciones de estimación computadas:
-```{r grafico_1}
+
+```{r grafico_1, echo=FALSE}
 # Inserto puntos para datos conocidos
-grafico <- ggplot(datos, aes(x = anio, y = poblacion)) + geom_point()
+grafico <- ggplot(datos, aes(x = anio, y = poblacion)) + geom_point(na.rm=TRUE)
 
 # Agrego líneas para cada función y la leyenda correspondiente
 grafico <- grafico +
@@ -302,7 +309,7 @@ print(grafico)
 
 Vemos que las funciones de estimación potencial y exponencial son tan similares, que prácticamente no se distinguen sus curvas. Para observarlas mejor, recreamos el mismo gráfico, pero centrándonos en el rango temporal $[2010, 2030]$:
 
-```{r grafico_2}
+```{r grafico_2, echo=FALSE}
 grafico <- grafico +
   labs(title="Gráfico 2: Población de San Juan Potosí (proyección)") +
   xlim(2010, 2030) +
@@ -311,6 +318,6 @@ grafico <- grafico +
 print(grafico)
 ```
 
-## Elección de modelo óptimo
+## Elección del modelo óptimo
 
-Sin ser un experto en estimación poblacional, podemos observar que en general, ninguno de los modelos provee una aproximación demasiado válida de la evolución de la población. Sin embargo, de entre las opciones consideradas, **el modelo con menor error total es el modelo lineal**, y por lo tanto lo consideraremos el más apropiado.
+Sin ser expertos en estimación poblacional, podemos observar que ninguno de los modelos provee una aproximación válida de la evolución de la población. Sin embargo, de entre las opciones consideradas, **el modelo con menor error total es el modelo lineal**, y por lo tanto lo consideraremos el más apropiado.
