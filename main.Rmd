@@ -10,7 +10,7 @@ output:
 
 ```{r knitr_options, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=12, fig.height=6, message=FALSE, comment=NA)
+opts_chunk$set(fig.width=14, fig.height=8, message=FALSE, comment=NA)
 ```
 
 # Acondicionamiento Inicial
@@ -271,23 +271,46 @@ et_exp <- sqrt(sum(err_exp))
 
 # Conclusiones
 
-## Gráfico comparativo
+## Gráficos comparativos
 
-```{r}
+En primer lugar, graficamos los valores conocidos de la población, junto con las tres funciones de estimación computadas:
+```{r grafico_1}
+# Inserto puntos para datos conocidos
 grafico <- ggplot(datos, aes(x = anio, y = poblacion)) + geom_point()
 
-grafico +
+# Agrego líneas para cada función y la leyenda correspondiente
+grafico <- grafico +
   stat_function(
-    fun = fun_lin,
-    color = "blue"
+    fun = est_lin,
+    aes(color = "Lineal")
   ) +
   stat_function(
-    fun = fun_pot,
-    color = "red"
+    fun = est_pot,
+    aes(color = "Potencial")
   ) +
   stat_function(
-    fun = fun_exp,
-    color = "green"
-  )
+    fun = est_exp,
+    aes(color = "Exponencial")
+  ) +
+  labs(title="Gráfico 1: Población de San Juan Potosí (valores conocidos)", y="Población (en millones de habitantes)", x="Año") +
+  scale_colour_manual("Estimación", values = c("blue", "red", "green")) +
+  theme(legend.position=c(0.1,0.85))
 
+
+print(grafico)
 ```
+
+Vemos que las funciones de estimación potencial y exponencial son tan similares, que prácticamente no se distinguen sus curvas. Para observarlas mejor, recreamos el mismo gráfico, pero centrándonos en el rango temporal $[2010, 2030]$:
+
+```{r grafico_2}
+grafico <- grafico +
+  labs(title="Gráfico 2: Población de San Juan Potosí (proyección)") +
+  xlim(2010, 2030) +
+  ylim(2.5, 3.7)
+
+print(grafico)
+```
+
+## Elección de modelo óptimo
+
+Sin ser un experto en estimación poblacional, podemos observar que en general, ninguno de los modelos provee una aproximación demasiado válida de la evolución de la población. Sin embargo, de entre las opciones consideradas, **el modelo con menor error total es el modelo lineal**, y por lo tanto lo consideraremos el más apropiado.
