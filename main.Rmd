@@ -24,6 +24,7 @@ library(ggplot2)
 ## Carga de datos y variables básicas
 
 La tabla detallando la cantidad de pobladores de San Luis Potosí - México, para años seleccionados entre 1970 y 2015 (expresada en millones) fue transcripta a un archivo CSV con codificación UTF-8 de dos columnas:
+
 - `anio`, y
 - `poblacion`.
 
@@ -33,7 +34,7 @@ datos <- read.csv("datos.csv")
 
 La variable dependiente $y$ será la población de San Luis Potosí, y la variable independiente $t$ el año para el que fue medida. $n$ es el número de observaciones del que disponemos.
 
-Por conveniencia, definimos también `uno`, un "vector unitario", con unos en todos sus elementos.
+Por conveniencia, definimos también `uno` ($\vec{1}$), un "vector unitario", con unos en todos sus elementos.
 
 _NOTA: En R, `t` es el nombre de la función que transpone matrices, por lo cual la variable $t$ es representada con el símbolo `tt`._
 
@@ -60,21 +61,43 @@ $$
 x^{*}_{lin} = \begin{pmatrix} b_{lin} \\ a_{lin} \end{pmatrix},
 A_{lin} = \begin{pmatrix} 1 & t_1 \\ 1 & t_2 \\ \dots & \dots \\ 1 & t_n \end{pmatrix}
 $$
-, podemos reescribir $Z_{lin}$ para todas las observaciones como
+, podemos reescribir vectorialmente $Z_{lin}$ para todas las observaciones como
 $$
 z_{lin} = A_{lin} \cdot x^{*}_{lin}
 $$
 
-En, general, 
+Si elegimos los coeficientes de $x^{*}_{lin}$ de forma que $z_{lin}$ sea la proyección ortogonal de $y$ sobre el subespacio definido por los vectores $\langle 1, t \rangle$, sabremos con seguridad que estamos minimizando $\Vert y - z_{lin} \Vert$. Además, $y - z_{lin}$ será ortogonal a ambos vectores, $1$ y $t$.
 
-# Defino matriz asociada
+Este planteo puede ser resumido en la siguiente "ecuación normal":
+
+$$
+\begin{align}
+A^{t} \cdot (y-A \cdot x^{*}_{lin}) &= 0 \\
+A^{t} \cdot y- A^{t} \cdot A \cdot x^{*}_{lin} &= 0 \\
+A^{t} \cdot y &= A^{t} \cdot A \cdot x^{*}_{lin}
+\end{align}
+$$
+
+y siempre y cuando $A^{t} \cdot A$ sea invertible, podemos encontrar $x^{*}_{lin}$ como
+
+$$
+\begin{align}
+(A^{t} \cdot A)^{-1} \cdot A^{t} \cdot y &= (A^{t} \cdot A)^{-1} \cdot A^{t} \cdot A \cdot x^{*}_{lin} \\
+(A^{t} \cdot A)^{-1} \cdot A^{t} \cdot y &= I \cdot x^{*}_{lin} \\
+x^{*}_{lin} &= (A^{t} \cdot A)^{-1} \cdot A^{t} \cdot y \\
+\end{align}
+$$
+
+A continuación, el código para calcular $x^{*}_{lin}$ según el método antes descrito:
+```{r ajuste_lineal}
 A_lin <- matrix(c(uno, tt), nrow = n)
 
-# Sea C = t(A) %*% A,  d = t(A) %*% y x los coeficientes lineales del modelo, tenemos
-# C %*% x = d y podemos obtener x como C^-1 %*% d, que se implementa como solve(C,d)
+# Sea C = A^t * A, y  d = A^t * y. Luego, podemos obtener x como C^-1 %*% d, que se implementa como solve(C,d)
 C_lin <- t(A_lin) %*% A_lin
 d_lin <- t(A_lin) %*% y
 x_lin <- solve(C_lin, d_lin)
+```
+
 
 # Extraigo los coeficientes
 b_lin <- x_lin[1]
