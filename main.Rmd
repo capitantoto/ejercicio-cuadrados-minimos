@@ -194,7 +194,7 @@ $$
 z_{pot}(t) = `r b_pot_orig`  \times t^{`r a_pot`}
 $$
 
-## Cálculo del error asociado al modelo
+## Cálculo del error asociado al modelo potencial
 
 Procedemos al igual que con el modelo lineal:
 ```{r error_potencial}
@@ -212,41 +212,68 @@ Usando la función `est_pot` antes definida, obtenemos una población estimada d
 
 # Ajuste modelo exponencial
 
+De manera similar a lo hecho para el modelo potencial, utilizaremos un modelo auxiliar que "lineariza" la función exponencial aplicando logaritmo natural a ambos términos:
 
-# z_exp = b_exp * e^(t*a_exp)
-# Que se lineariza como
-# ln(z_exp) = ln(b_exp) + a_exp * t
+$$
+\begin{align}
+z_{exp} &= b_{exp} \times e^{a_{exp} \times t}
+\ln(z_{exp}) &= \ln \left( b_{exp} \times e^{a_{exp} \times t} \right)
+\ln(z_{exp}) &= \ln(b_{exp}) + a_{exp} \times t
+\end{align}
+$$
 
+Podemos reutilizar los vectores auxiliares $\ln(y)$ y $\ln(t)$, y manteniendo los mismos cuidados que para el modelo potencial, encontramos los coeficientes $x^{*}_{pot}$:
+
+```{r ajuste_exponencial}
 # Defino matriz asociada
 A_exp <- matrix(c(uno, tt), nrow = n)
 
-# Sea C = t(A) %*% A,  d = t(A) %*% y x los coeficientes lineales del modelo, tenemos
-# C %*% x = d y podemos obtener x como C^-1 %*% d, que se implementa como solve(C,d)
 C_exp <- t(A_exp) %*% A_exp
 d_exp <- t(A_exp) %*% ln_y
 x_exp <- solve(C_exp, d_exp)
+```
 
+Una vez más, extraemoms los coeficientes del modelo auxiliar linearizado, los transformamos para especificar el modelo exponencial, y escribimos una función en R, `est_exp`, que lo represente:
+
+```{r est_exp}
 # Extraigo los coeficientes
 b_exp <- x_exp[1]
 a_exp <- x_exp[2]
+
 # Recupero los coeficientes del modelo no linearizado
 b_exp_orig <- exp(b_exp)
 
+# Defino est_exp
+est_exp <- function(x) { b_exp_orig * exp(a_exp*x)}
+```
 
-# Calculo la estimacion lineal de y, z_lin, y el error asociado al modelo
+`est_exp` es equivalente, entonces al modelo ajustado
+
+$$
+z_{exp}(t) = `r b_exp_orig` \times e^{`r a_exp` \times t}
+$$
+
+
+## Cálculo del error asociado al modelo exponencial
+
+Con el procedimiento ya descrito,
+```{r error_exponencial}
 z_exp <- b_exp_orig * exp(tt*a_exp)
 err_exp <- (y-z_exp)^2
 et_exp <- sqrt(sum(err_exp))
+```
 
-# Estimo la poblacion segun el modelo exponencial para el 2030
-est_2030_exp <- b_exp_orig * exp(a_exp * 2030)
+... obtenemos $ET_{exp} = `r et_exp`$
 
+## Estimación exponencial de la poblacion para el 2030
 
-# Preparo grafico
-# Funciones de estimacion
-fun_lin <- function(x) { b_lin + a_lin * x}
-fun_exp <- function(x) { b_exp_orig * exp(a_exp*x)}
+`est_exp(2030)`devuelve una población estimada de `r est_exp(2030)` millones de habitantes para San Juan Potosí.
 
+# Conclusiones
+
+## Gráfico comparativo
+
+```{r}
 grafico <- ggplot(datos, aes(x = anio, y = poblacion)) + geom_point()
 
 grafico +
@@ -263,3 +290,4 @@ grafico +
     color = "green"
   )
 
+```
