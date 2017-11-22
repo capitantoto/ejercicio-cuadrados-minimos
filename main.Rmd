@@ -45,10 +45,6 @@ tt <- datos$anio
 uno <- rep.int(1, n)
 ```
 
-ln_y <- log(datos$poblacion)
-
-ln_tt <- log(datos$anio)
-
 # Ajuste lineal
 
 ## Aspectos generales del ajuste por cuadrados mínimos
@@ -117,7 +113,7 @@ $$
 z_{lin}(t) = `r b_lin` + `r a_lin` \times t
 $$
 
-## Cálculo del error asociado al modelo
+## Cálculo del error asociado al modelo lineal
 
 Sea el error total del modelo
 $$
@@ -137,16 +133,38 @@ $$
 ET_{lin} = `r et_lin`
 $$
 
-## Estimación de la poblacion para el 2030
+## Estimación lineal de la poblacion para el 2030
 
-Contando con la función `est_lin`, la estimación lineal de la población para 2030 se consigue 
-est_2030_lin <- b_lin + a_lin * 2030
+Contando con la función `est_lin`, la estimación lineal de la población para 2030 se consigue como
+```{r estimacion_lineal}
+est_2030_lin <- est_lin(2030)
+```
+... que arroja una población estimada de `r est_2030_lin` millones de habitantes.
 
-### Ajuste modelo polinomial
-# z_pot = b_pot * t^a_pot
-# Que se lineariza como
-# ln(z_pot) = ln(b_pot) + a_pot * ln(t)
+# Ajuste modelo potencial
 
+Hasta aquí, hemos visto cómo ajustar por la técnica de cuadrados mínimos un modelo _lineal_ sobre las variables independientes. Por lo tanto, un modelo donde la estimación depende de una función _potencial_ (no estoy seguro de este término), $z_{pot} = b_{pot} \times t^{a_{pot}}$ no se puede ajustar por cuadrados mínimos sin algún tratamiento previo.
+
+En particular, si aplicamos logaritmo natural a ambos términos, obtenemos
+$$
+\begin{align}
+\ln(z_{pot}) &= \ln \left(b_{pot} \times t^{a_{pot}}\right)  \\
+\ln(z_{pot}) &=  \ln(b_{pot}) + a_{pot} \times \ln(t)
+\end{align}
+$$
+
+Es decir que si tomamos $\ln(z_{pot})$ como la variable dependiente y a $\ln(t)$ como la variable independiente, obtenemos un modelo lineal, que sí podemos ajustar por cuadrados mínimos.
+
+A continuación, realizamos las mismas operaciones que para el ajuste del modelo lineal, con el cuidado necesario para convertir entre el modelo potencial original y el auxiliar lineal.
+
+Definimos los vectores auxiliares $\ln(y)$ (`ln_y`) y $\ln(t)$ (`ln_tt`)
+```{r variables_logaritmicas}
+ln_y <- log(y)
+ln_tt <- log(tt)
+```
+
+Y luego resolvemos tal como hicimos con el modelo lineal:
+```{r ajuste_potencial}
 # Defino matriz asociada
 A_pot <- matrix(c(uno, ln_tt), nrow = n)
 
@@ -155,23 +173,46 @@ A_pot <- matrix(c(uno, ln_tt), nrow = n)
 C_pot <- t(A_pot) %*% A_pot
 d_pot <- t(A_pot) %*% ln_y
 x_pot <- solve(C_pot, d_pot)
+```
 
+## Especificación del modelo
+
+Vale recordar que en este modelo potencial linearizado, los coeficientes de $x^{*}_{pot}$ son $\ln(b_{pot})$ y $a_{pot}$, por lo que para reconstruir la función original, tendremos que recuperar $b_{pot}$.
+
+```{r est_pot}
 # Extraigo los coeficientes
 b_pot <- x_pot[1]
 a_pot <- x_pot[2]
 # Recupero los coeficientes del modelo no linearizado
 b_pot_orig <- exp(b_pot)
 
+est_pot <- function(x) { b_pot_orig * x^a_pot}
+```
 
-# Calculo la estimacion polinomial de y, z_pot, y el error asociado al modelo
-z_pot <- b_pot_orig * tt^a_pot
+Esta última función, `est_pot`, codifica el modelo ajustado, que resulta ser
+$$
+z_{pot}(t) = `r b_pot_orig`  \times t^{`r a_pot`}
+$$
+
+## Cálculo del error asociado al modelo
+
+Procedemos al igual que con el modelo lineal:
+```{r error_potencial}
+z_pot <- est_pot(tt)
 err_pot <- (y-z_pot)^2
 et_pot <- sqrt(sum(err_pot))
+```
 
-# Estimo la poblacion segun el modelo polinomial para el 2030
-est_2030_pot <- b_pot_orig * 2030^a_pot
+Lo que nos da un error total $ET_{pot}=`r et_pot`$
 
-### Ajuste modelo exponencial
+
+## Estimación potencial de la poblacion para el 2030
+
+Usando la función `est_pot` antes definida, obtenemos una población estimada de `r est_pot(2030)` millones de habitantes.
+
+# Ajuste modelo exponencial
+
+
 # z_exp = b_exp * e^(t*a_exp)
 # Que se lineariza como
 # ln(z_exp) = ln(b_exp) + a_exp * t
@@ -204,7 +245,6 @@ est_2030_exp <- b_exp_orig * exp(a_exp * 2030)
 # Preparo grafico
 # Funciones de estimacion
 fun_lin <- function(x) { b_lin + a_lin * x}
-fun_pot <- function(x) { b_pot_orig * x^a_pot}
 fun_exp <- function(x) { b_exp_orig * exp(a_exp*x)}
 
 grafico <- ggplot(datos, aes(x = anio, y = poblacion)) + geom_point()
