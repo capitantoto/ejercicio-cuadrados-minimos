@@ -253,7 +253,7 @@ est_exp <- function(x) { b_exp * exp(a_exp*x)}
 El modelo exponencial ajustado representado por `est_exp` queda como
 
 $$
-z_{exp}(t) = `r b_exp_orig` \times e^{`r a_exp` \times t}
+z_{exp}(t) = `r b_exp` \times e^{`r a_exp` \times t}
 $$
 
 
@@ -261,7 +261,7 @@ $$
 
 Con el procedimiento ya descrito,
 ```{r error_exponencial}
-z_exp <- b_exp_orig * exp(tt*a_exp)
+z_exp <- b_exp * exp(tt*a_exp)
 err_exp <- (y-z_exp)^2
 et_exp <- sqrt(sum(err_exp))
 ```
