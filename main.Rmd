@@ -49,7 +49,9 @@ ln_y <- log(datos$poblacion)
 
 ln_tt <- log(datos$anio)
 
-## Ajuste lineal
+# Ajuste lineal
+
+## Aspectos generales del ajuste por cuadrados mínimos
 
 Sea $z_{lin}(t)$ la estimación lineal de la población para el año $t$:
 
@@ -98,17 +100,46 @@ d_lin <- t(A_lin) %*% y
 x_lin <- solve(C_lin, d_lin)
 ```
 
+## Especificación del modelo
 
-# Extraigo los coeficientes
+Para recrear la fórmula inicial $z_{lin}(t) = b_{lin} + a_{lin} \times t$, extraigo los coeficientes $(b_{lin}, a_{lin})$ y la codificamos en un método de R.
+
+
+```{r est_lin}
 b_lin <- x_lin[1]
 a_lin <- x_lin[2]
+est_lin <- function(x) { b_lin + a_lin * x}
+```
 
-# Calculo la estimacion lineal de y, z_lin, y el error asociado al modelo
+que es equivalente a
+
+$$
+z_{lin}(t) = `r b_lin` + `r a_lin` \times t
+$$
+
+## Cálculo del error asociado al modelo
+
+Sea el error total del modelo
+$$
+ET_{lin} = \Vert y - z_{lin} \Vert = \sum\limits_{i=1}^n (y_{i} - z_{lin,i})^2
+$$
+
+Se lo puede calcular como
+```{r error_lineal}
 z_lin <- A_lin %*% x_lin
+# Alternativamente, z_lin = est_lin(tt)
 err_lin <- (y-z_lin)^2
 et_lin <- sqrt(sum(err_lin))
+```
 
-# Estimo la poblacion segun el modelo lineal para el 2030
+de forma que 
+$$
+ET_{lin} = `r et_lin`
+$$
+
+## Estimación de la poblacion para el 2030
+
+Contando con la función `est_lin`, la estimación lineal de la población para 2030 se consigue 
 est_2030_lin <- b_lin + a_lin * 2030
 
 ### Ajuste modelo polinomial
