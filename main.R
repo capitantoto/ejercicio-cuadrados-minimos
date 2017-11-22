@@ -32,33 +32,33 @@ et_lin <- sqrt(sum(err_lin))
 est_2030_lin <- b_lin + a_lin * 2030
 
 ### Ajuste modelo polinomial
-# z_pol = b_pol * t^a_pol
+# z_pot = b_pot * t^a_pot
 # Que se lineariza como
-# ln(z_pol) = ln(b_pol) + a_pol * ln(t)
+# ln(z_pot) = ln(b_pot) + a_pot * ln(t)
 
 # Defino matriz asociada
-A_pol <- matrix(c(uno, ln_tt), nrow = n)
+A_pot <- matrix(c(uno, ln_tt), nrow = n)
 
 # Sea C = t(A) %*% A,  d = t(A) %*% y x los coeficientes lineales del modelo, tenemos
 # C %*% x = d y podemos obtener x como C^-1 %*% d, que se implementa como solve(C,d)
-C_pol <- t(A_pol) %*% A_pol
-d_pol <- t(A_pol) %*% ln_y
-x_pol <- solve(C_pol, d_pol)
+C_pot <- t(A_pot) %*% A_pot
+d_pot <- t(A_pot) %*% ln_y
+x_pot <- solve(C_pot, d_pot)
 
 # Extraigo los coeficientes
-b_pol <- x_pol[1]
-a_pol <- x_pol[2]
+b_pot <- x_pot[1]
+a_pot <- x_pot[2]
 # Recupero los coeficientes del modelo no linearizado
-b_pol_orig <- exp(b_pol)
+b_pot_orig <- exp(b_pot)
 
 
-# Calculo la estimacion polinomial de y, z_pol, y el error asociado al modelo
-z_pol <- b_pol_orig * tt^a_pol
-err_pol <- (y-z_pol)^2
-et_pol <- sqrt(sum(err_pol))
+# Calculo la estimacion polinomial de y, z_pot, y el error asociado al modelo
+z_pot <- b_pot_orig * tt^a_pot
+err_pot <- (y-z_pot)^2
+et_pot <- sqrt(sum(err_pot))
 
 # Estimo la poblacion segun el modelo polinomial para el 2030
-est_2030_pol <- b_pol_orig * 2030^a_pol
+est_2030_pot <- b_pot_orig * 2030^a_pot
 
 ### Ajuste modelo exponencial
 # z_exp = b_exp * e^(t*a_exp)
@@ -93,7 +93,7 @@ est_2030_exp <- b_exp_orig * exp(a_exp * 2030)
 # Preparo grafico
 # Funciones de estimacion
 fun_lin <- function(x) { b_lin + a_lin * x}
-fun_pol <- function(x) { b_pol_orig * x^a_pol}
+fun_pot <- function(x) { b_pot_orig * x^a_pot}
 fun_exp <- function(x) { b_exp_orig * exp(a_exp*x)}
 
 grafico <- ggplot(datos, aes(x = anio, y = poblacion)) + geom_point()
@@ -104,7 +104,7 @@ grafico +
     color = "blue"
   ) +
   stat_function(
-    fun = fun_pol,
+    fun = fun_pot,
     color = "red"
   ) +
   stat_function(
