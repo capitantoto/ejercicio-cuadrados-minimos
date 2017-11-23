@@ -236,7 +236,7 @@ d_exp <- t(A_exp) %*% ln_y
 x_exp <- solve(C_exp, d_exp)
 ```
 
-Una vez más, extraemoms los coeficientes del modelo auxiliar linearizado, los transformamos para especificar el modelo exponencial, y escribimos una función en R, `est_exp`, que lo represente:
+Una vez más, extraemos los coeficientes del modelo auxiliar linearizado, los transformamos para especificar el modelo exponencial, y escribimos una función en R, `est_exp`, que lo represente:
 
 ```{r est_exp}
 # Extraigo los coeficientes
